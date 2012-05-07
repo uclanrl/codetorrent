@@ -1,0 +1,12 @@
+g++ -Wall -O3 -lpthread -o ct main.o codetorrent.o nc.o galois.o
+main.o: In function `periodic_request(void*)':
+main.cpp:(.text+0xa2): undefined reference to `pthread_create'
+main.o: In function `listen_gossip(void*)':
+main.cpp:(.text+0x25f): undefined reference to `pthread_create'
+main.o: In function `main':
+main.cpp:(.text.startup+0x230): undefined reference to `pthread_create'
+main.cpp:(.text.startup+0x24b): undefined reference to `pthread_create'
+main.cpp:(.text.startup+0x26f): undefined reference to `pthread_create'
+main.o:main.cpp:(.text.startup+0x41e): more undefined references to `pthread_create' follow
+collect2: ld returned 1 exit status
+make: *** [ct] Error 1

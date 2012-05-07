@@ -1,0 +1,239 @@
+/*
+ * codetorrent.h
+ *
+ * Main CodeTorrent module
+ *
+ * Coded by Joe Yeh/Uichin Lee
+ * Modified and extended by Seunghoon Lee/Sung Chul Choi
+ * University of California, Los Angeles
+ *
+ * NOTE: No multi-file support
+ *
+ * Last modified: 11/21/06
+ *
+ */
+
+#ifndef __CODETORRENT_H__
+#define __CODETORRENT_H__
+
+#include "nc.h"
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <sys/stat.h>
+#include <math.h>
+#include <stdlib.h>
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include "pthread.h" // Thread! Make sure pthread library is loaded
+					 // WIN32: http://sourceware.org/pthreads-win32/
+					 // Linux/Unix: run gcc with -lpthread command
+
+#define CT_SERVER 0
+#define CT_CLIENT 1
+
+#define MAX_FILE_NAME_LEN 256
+#define MAX_FILE_STORE 10 // # of files to share or download
+
+#define PRINT_RANK	50
+#define PRINT_BLK	15
+
+//pthread_mutex_t work_mutex;
+
+class CodeTorrent {
+
+public:
+
+	////////////////////////////
+	// constructors
+
+	CodeTorrent() {};
+
+	// Server (Data source)
+	CodeTorrent(int in_field_size, int in_num_blocks_per_gen, int in_block_size, char *in_filename, bool in_is_sim) { 
+
+		Init(in_field_size, in_num_blocks_per_gen, in_block_size, in_filename, in_is_sim);
+		nc = new NC(field_size, is_sim);
+		srand(15);
+	}
+
+	/*
+	// Client
+	CodeTorrent(int in_field_size, int in_num_gens, int *in_num_blocks_gen, int in_block_size, 
+				char *in_filename, int in_file_size, int in_buffer_size, bool in_is_sim) {
+
+		Init(in_field_size, in_num_gens, in_num_blocks_gen, in_block_size, in_filename, in_file_size, in_buffer_size, in_is_sim);	
+		nc = new NC(field_size, is_sim);
+		srand(15);
+	}
+*/
+
+	CodeTorrent(int in_field_size, int in_file_id, int in_num_blocks_per_gen, int in_block_size, 
+				char *in_filename, int in_file_size, bool in_is_sim) {
+
+		Init(in_field_size, in_file_id, in_num_blocks_per_gen, in_block_size, in_filename, in_file_size, in_is_sim);
+		nc = new NC(field_size, is_sim);
+		srand(15);
+		
+	}
+
+	~CodeTorrent();
+
+	////////////////////////////
+	// accessors
+
+	inline char* GetFileName() { return filename; }
+	inline int GetFileSize() { return file_size; }
+	inline int GetFieldSize() { return field_size; }
+	inline int GetBlockSize() { return block_size; }
+	inline int GetNumBlocks() { return num_blocks; }
+	inline int GetNumGens() { return num_gens; }
+	
+	inline int* GetNumBlocksGen() { return num_blocks_gen; }
+	inline int GetNumBlocksGen(int in) { return num_blocks_gen[in]; }
+	inline int GetGenCompleted() { return gen_completed; }
+
+	inline int* GetRankVec() { 
+		if( identity == CT_SERVER ) 
+			return num_blocks_gen;
+
+		return rank_vec; 
+	}
+	inline int* GetRankBufferVec() { return rank_vec_in_buf; }
+
+	inline bool DownloadCompleted() { 
+		if( identity == CT_SERVER ) 
+			return true;
+		return GetGenCompleted() == GetNumGens(); 
+	}
+
+	inline int GetIdentity() { return identity;	}
+
+	////////////////////////////
+	// modifiers
+
+	inline int IncrementGenCompleted() { return ++gen_completed; }
+
+	////////////////////////////
+	// block memory operations
+
+	BlockPtr AllocBlock(int in_block_size);
+	void FreeBlock(BlockPtr blk);
+
+	CoeffsPtr AllocCoeffs(int numblks);
+	void FreeCoeffs(CoeffsPtr blk);
+
+	CodedBlockPtr AllocCodedBlock(int numblks, int blksize);
+	CodedBlockPtr CopyCodedBlock(CodedBlockPtr ptr);
+	void FreeCodedBlock(CodedBlockPtr ptr);
+
+	CodedBlockPtr EmptyCodedBlock()
+	{ return AllocCodedBlock(num_blocks_gen[0], block_size); }	// NOTE: Never call this before initializing it!
+
+	////////////////////////////
+	// data block operations
+
+	CodedBlockPtr Encode(int gen);			// encode a block from generation "gen"			NOTE: server only
+	CodedBlockPtr ReEncode(int gen);		// re-encode a block from generation "gen"		NOTE: client only
+											// return NULL pointer if failed (e.g. no data in buffer)
+	bool StoreBlock(CodedBlockPtr in);		// store a new block into the buffer			NOTE: client only
+
+	bool Decode();
+
+	////////////////////////////
+	// printing operations
+
+	void PrintBlocks(int gen);				// print things in data			NOTE: server only
+	void PrintDecoded();					// print things in m_data		NOTE: client only
+	void PrintFileInfo();					// print detailed information about the file
+	void LoadFile(int gen);					// load gen-th generation of the file to memory
+
+	//////////////////////////////
+	//
+	inline int GetNumFiles() { return file_counter; }
+	inline int GetFileID(int index) { return file_id[index];}
+	inline int IncNumFiles() { file_counter++; }
+
+private:
+
+	////////////////////////////
+	// private methods
+
+
+	// Server
+	void Init(int in_field_size, int in_num_blocks_per_gen, int in_block_size, char *in_filename, bool in_is_sim);
+
+	// Client
+	void Init(int in_field_size, int in_file_id, int in_num_blocks_per_gen, int in_block_size, 
+				char *in_filename, int in_file_size, bool in_is_sim);
+
+	// File loading
+	void LoadFileInfo(int in_num_blocks_per_gen);				// load file info and determine parameters
+	//void LoadFile(int gen);			// load gen-th generation of the file to memory :  moved to public area
+	unsigned char NthSymbol(unsigned char *buf, int fsize, int at);
+
+	// Decoding and writing
+	bool DecodeGen(int gen);						// decode data for each generation
+	void WriteFile();								// NOTE: obsolete?
+	void WriteFile(int gen);						// Write data into a file for each generation
+
+	// File buffer related functions
+	void PushGenBuf(CodedBlockPtr in);				// Store a block into the corresponding file buffer
+	CodedBlockPtr ReadGenBuf(int gen, int k);		// Read k-th block in the gen-th file buffer
+	void FlushBuf();								// Save some buffer space by pushing some blocks into files
+
+	// clean up methods
+	void CleanMHelpful();
+	void CleanMGData();
+	void CleanData();
+	void CleanBuffer();
+
+	void CleanTempFiles();
+
+	////////////////////////////
+	// member variables
+
+	FILE *fp;								// file (for reading purposes)
+	FILE *fp_write;							// file (for writing purposes)
+	char filename[MAX_FILE_NAME_LEN];		// filename
+	char out_filename[MAX_FILE_NAME_LEN];	// filename - decoded file <- only for client.
+	int file_id[MAX_FILE_STORE];			// file id
+	int file_counter;						// # of files
+	int file_size;							// file size in bytes
+	int field_size;							// field size
+	int num_blocks;							// number of blocks 
+	int block_size;							// block size
+	int num_gens;							// number of generations
+	int *num_blocks_gen;					// number of blocks in a generation	(NOTE: it's vector!)
+	bool is_sim;							// true if in simulation phase
+
+	int gen_completed;						// for client; number of generations completed
+	int identity;							// CT_CLIENT or CT_SERVER
+	
+	int gen_in_memory;						// which generation is loaded in m_gdata?
+
+	CodedBlockPtr cb;						// coded block buffer
+
+	NC *nc;									// network coding module
+
+	// storages
+	int buffer_size;						// size of a buffer
+	std::vector<CodedBlockPtr> buf;			// memory buffer (I call this "memory" buffer to distinguish from "file buffers")
+	std::vector<BlockPtr> data;				// actual data													NOTE: only for server (or seed)
+
+	// matrices
+	unsigned char **m_gdata;				// for actual data, only one generation (formerly m_d)			NOTE: allocate this when decoding	
+	unsigned char ***m_helpful;				// for helpfulness checking	(formerly m_h)						NOTE: only for client
+
+	// information
+	int *rank_vec;							// vector of ranks											NOTE: not really useful for server
+	int *rank_vec_in_buf;					// same thing, but only counting the ones in the buffer		NOTE: not really useful for server
+
+	pthread_mutex_t work_mutex;				// mutex to lock buf and m_gdata
+};
+
+#endif
+
