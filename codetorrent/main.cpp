@@ -1573,23 +1573,7 @@ int main (int argc, char **argv)
 //detecting AP
 bool ap_detection()
 {
-	char add;
-	FILE* fp;
-
-	char* filename = "ap.txt";
-	if ( ! (fp = fopen(filename,"rb") )) {
-		printf("Error: cannot open ap.txt\n");
-		abort();
-	}
-
-	fread(&add, 1, 1, fp);
-
-	printf("%c\n", add);
-
-	fclose(fp);
-
-	if ( add == 'T' ) return true;
-	else return false;
+	return false;
 }
 
 
