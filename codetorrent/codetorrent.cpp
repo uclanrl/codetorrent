@@ -279,7 +279,7 @@ void CodeTorrent::Init(int in_field_size, int in_num_blocks_per_gen, int in_bloc
 
 	// output file name setup
 	//char *ext = ".rec";
-	char *ext = "";
+	char *ext = ".received";
 	int fname_len = strlen(filename);
 	int ext_len = strlen(ext);
 	
