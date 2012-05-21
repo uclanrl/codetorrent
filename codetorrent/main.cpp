@@ -1360,6 +1360,7 @@ int main (int argc, char **argv)
 	}
 
 	if ( atoi(argv[1]) == 0 ) { // seed
+		nodeId = atoi(argv[1]);
 
 		if( argc < 6 ) {
 			printUsage();
