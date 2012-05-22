@@ -1556,7 +1556,7 @@ int main (int argc, char **argv)
 
 			if (res != 0)	{
 
-				printf("Incoming_packet() Thread Creation failed");
+				printf("Incoming_packet() Thread Creation failed |%d|",res);
 				return 0;
 			}
 		}
