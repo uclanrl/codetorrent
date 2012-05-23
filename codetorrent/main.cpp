@@ -74,7 +74,7 @@ bool decoding = false;
 bool verbose = false;
 int gossip_freq = 2000;		// frequency of gossips in ms
 
-char broadcastaddress[] = "10.0.0.11   ";
+char broadcastaddress[20];
 
 // define packet
 /*
@@ -1375,7 +1375,9 @@ int main (int argc, char **argv)
 
 		if( argc ==8 )
 			strcpy(broadcastaddress,argv[7]);
-			//printf("%s\n",broadcastaddress);
+		else
+			strcpy(broadcastaddress,"192.168.2.255");
+		printf("broadcastaddress=|%s|\n",broadcastaddress);
 
 	}
 	else {
