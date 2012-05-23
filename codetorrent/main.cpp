@@ -74,6 +74,8 @@ bool decoding = false;
 bool verbose = false;
 int gossip_freq = 2000;		// frequency of gossips in ms
 
+char broadcastaddress[] = "10.0.0.11   ";
+
 // define packet
 /*
 struct CT_packet
@@ -587,7 +589,7 @@ void* send_gossip(void *voidptr)
 #ifdef WIN32
 	add.sin_addr.S_un.S_addr = inet_addr("255.255.255.255");
 #else
-	add.sin_addr.s_addr = inet_addr("192.168.0.255");
+	add.sin_addr.s_addr = inet_addr(broadcastaddress);
 #endif
 	add.sin_port = htons(L_Port);
 
@@ -674,16 +676,6 @@ void* listen_gossip(void* voidptr) {
     	}
 
 	/////// BIND
-   	char hostname[255];
-	gethostname(hostname, 255);
-	hostent *he;
-	if ((he = gethostbyname(hostname)) == 0) {
-		printf("[listen_gossip] gethostbyname error!\\n");
-		//pthread_exit("listen_gossip unexpectedly exits");
-		pthread_exit(NULL);
-
-		return NULL;
-	}
 
 	my_addr_listen.sin_family = AF_INET;			// host byte order
     my_addr_listen.sin_port = htons(L_Port);		// short, network byte order
@@ -1380,6 +1372,10 @@ int main (int argc, char **argv)
 
 		if( argc == 7 && !strcmp(argv[6],"-v"))
 			verbose = true;
+
+		if( argc ==8 )
+			strcpy(broadcastaddress,argv[7]);
+			//printf("%s\n",broadcastaddress);
 
 	}
 	else {
