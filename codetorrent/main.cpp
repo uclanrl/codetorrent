@@ -728,7 +728,7 @@ void* listen_gossip(void* voidptr) {
 			res = pthread_create(&incoming_thread, NULL, receive_gossip, (void *)buf);
 
 			if (res != 0)	{
-				printf("receive_gossip() Thread Creation failed");
+				printf("receive_gossip() Thread Creation failed |%d|",res);
 				return 0;	
 			}
 		}
@@ -1223,7 +1223,7 @@ void* periodic_request(void* voidptr) {
 		int res = pthread_create(&send_request_thread, NULL, send_request, (void *)voidptr);
 		if (res != 0)	{
 			printf("ERROR: %s\n", strerror(errno));
-			printf("[periodic_request] send_request() Thread Creation failed");
+			printf("[periodic_request] send_request() Thread Creation failed |%d|",res);
 			return 0;
 		}
 	
@@ -1448,7 +1448,7 @@ int main (int argc, char **argv)
 		res = pthread_create(&gossip_send_thread, NULL, send_gossip, (void *)voidptr);
 		if (res != 0)	{
 			
-			printf("[main] send_gossip() Thread Creation failed");
+			printf("[main] send_gossip() Thread Creation failed |%d|",res);
 			return 0;
 		}
 	//}
@@ -1463,7 +1463,7 @@ int main (int argc, char **argv)
 		res = pthread_create(&gossip_listen_thread, NULL, listen_gossip, (void *)voidptr);
 
 		if (res != 0)	{
-			printf("[main] listen_gossip() Thread Creation failed");
+			printf("[main] listen_gossip() Thread Creation failed |%d|",res);
 			return 0;
 		}
 	//}
