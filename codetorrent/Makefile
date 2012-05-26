@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -O3
+CXXFLAGS = -g -O0 -Wall -O3
 
 TARGET_NAME = ct
 
