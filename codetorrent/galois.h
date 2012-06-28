@@ -16,14 +16,14 @@
 
 #define GF8  256
 #define PP8 0435 // n.b. octal value.
-
 // Galois module
 class Galois {
 
 public:
 	////////////////////////////
 	// constructor
-	Galois() : GF(GF8), PP(PP8) {
+	Galois() :
+			GF(GF8), PP(PP8) {
 
 		Init();
 	}
@@ -34,24 +34,30 @@ public:
 	}
 
 	// operations
-	inline unsigned char Add(unsigned char a, unsigned char b, int ff) { return a^b; };	// a+b
-	inline unsigned char Sub(unsigned char a, unsigned char b, int ff) { return a^b; };	// a-b
+	inline unsigned char Add(unsigned char a, unsigned char b, int ff) {
+		return a ^ b;
+	}
+	; // a+b
+	inline unsigned char Sub(unsigned char a, unsigned char b, int ff) {
+		return a ^ b;
+	}
+	; // a-b
 //	unsigned char Mul(unsigned char a, unsigned char b, int ff);		// a*b
 //	unsigned char Div(unsigned char a, unsigned char b, int ff);		// a/b
 	inline unsigned char Mul(unsigned char a, unsigned char b, int ff) {
-		if( a == 0 || b == 0 )
+		if (a == 0 || b == 0)
 			return 0;
 		else
-		//return ALog[(Log[a]+Log[b])%(GF-1)]; w/o optimization
-			return ALog[Log[a]+Log[b]];
+			//return ALog[(Log[a]+Log[b])%(GF-1)]; w/o optimization
+			return ALog[Log[a] + Log[b]];
 	}
 
 	inline unsigned char Div(unsigned char a, unsigned char b, int ff) {
-		if( a == 0 || b == 0 )
+		if (a == 0 || b == 0)
 			return 0;
 		else
-		//return ALog[(Log[a]-Log[b]+GF-1)%(GF-1)]; w/o optimization
-			return ALog[Log[a]-Log[b]+GF-1];
+			//return ALog[(Log[a]-Log[b]+GF-1)%(GF-1)]; w/o optimization
+			return ALog[Log[a] - Log[b] + GF - 1];
 	}
 private:
 
@@ -59,8 +65,8 @@ private:
 	// member variables
 
 	// log tables
-	unsigned char Log[GF8];				
-	unsigned char ALog[GF8*2];
+	unsigned char Log[GF8];
+	unsigned char ALog[GF8 * 2];
 
 	const int GF;
 	const int PP;
@@ -69,9 +75,8 @@ private:
 	// private functions
 
 	// Initializes log tables
-	void Init();		
+	void Init();
 
 };
-
 
 #endif
