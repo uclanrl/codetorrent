@@ -1,7 +1,8 @@
 codetorrent
 ===========
 
-UCLA NRL implementation of codetorrent.
+UCLA Network Research Lab (NRL) implementation of codetorrent.
+http://nrlweb.cs.ucla.edu/
 
 Paper is
 
@@ -16,3 +17,5 @@ University of California
 Los Angeles, CA 90095
 
 {uclee,jspark,jyeh,gpau,gerla}@cs.ucla.edu 
+
+http://dl.acm.org/citation.cfm?id=1161254
